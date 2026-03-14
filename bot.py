@@ -1,16 +1,14 @@
-from telethon import TelegramClient
+import requests
 
-# Use your existing API ID and API HASH
-api_id = 36979235
-api_hash = "6c17dfff0011cfe631a6f029f5fae3e6"
+TOKEN = "1934568871:UAzs_KGSXXi8sZ-e8OdNVBLhko2cc0apn4E"
+CHAT_ID = 650686292  # replace with the id from getUpdates
 
-# Connect using your session file
-client = TelegramClient("session", api_id, api_hash)
+url = f"https://tapi.bale.ai/bot{TOKEN}/sendMessage"
 
-async def main():
-    # Send a message to yourself
-    me = await client.get_me()
-    await client.send_message(me.id, "Hello! This is a test message from my bot.")
+data = {
+    "chat_id": CHAT_ID,
+    "text": "Hello from my Python bot!"
+}
 
-with client:
-    client.loop.run_until_complete(main())
+response = requests.post(url, json=data)
+print(response.text)
