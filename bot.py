@@ -10,7 +10,7 @@ api_hash = "6c17dfff0011cfe631a6f029f5fae3e6"
 
 # Bale bot info
 TOKEN = "1934568871:UAzs_KGSXXi8sZ-e8OdNVBLhko2cc0apn4E"
-CHAT_ID = "darasarabot"
+CHAT_ID = 650686292
 
 client = TelegramClient("session", api_id, api_hash)
 
