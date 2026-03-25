@@ -9,7 +9,7 @@ api_id = 36979235
 api_hash = "6c17dfff0011cfe631a6f029f5fae3e6"
 
 TOKEN = "1934568871:UAzs_KGSXXi8sZ-e8OdNVBLhko2cc0apn4E"
-CHAT_ID = 123456789   # replace with your real Bale chat_id
+CHAT_ID = 650686292   # replace with your real Bale chat_id
 
 client = TelegramClient("session", api_id, api_hash)
 
