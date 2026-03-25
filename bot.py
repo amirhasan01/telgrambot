@@ -1,14 +1,14 @@
-import requests
+from telethon import TelegramClient, events
 
-TOKEN = "1934568871:UAzs_KGSXXi8sZ-e8OdNVBLhko2cc0apn4E"
-CHAT_ID = 650686292  # replace with the id from getUpdates
+api_id = 36979235
+api_hash = "6c17dfff0011cfe631a6f029f5fae3e6"
 
-url = f"https://tapi.bale.ai/bot{TOKEN}/sendMessage"
+client = TelegramClient("session_name", api_id, api_hash)
 
-data = {
-    "chat_id": CHAT_ID,
-    "text": "Hello from my Python bot!"
-}
+@client.on(events.NewMessage)
+async def handler(event):
+    if event.raw_text == "hi":
+        await event.reply("Hello!")
 
-response = requests.post(url, json=data)
-print(response.text)
+client.start()
+client.run_until_disconnected()
