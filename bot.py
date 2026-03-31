@@ -17,7 +17,7 @@ last_update_id = None
 
 async def get_last_10_messages(channel):
     try:
-        messages = await client.get_messages(channel, limit=50)
+        messages = await client.get_messages(channel, limit=10)
         combined_text = ""
         for i, msg in enumerate(reversed(messages), start=1):
             text = msg.text if msg.text else "Media post (no text)"
