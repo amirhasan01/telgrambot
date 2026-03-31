@@ -13,7 +13,7 @@ TOKEN = "1934568871:UAzs_KGSXXi8sZ-e8OdNVBLhko2cc0apn4E"
 client = TelegramClient("session", api_id, api_hash)
 
 last_update_id = None
-DELETE_DELAY = 10  # seconds
+DELETE_DELAY = 5  # seconds
 
 
 async def send_message(chat_id, message):
