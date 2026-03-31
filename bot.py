@@ -14,84 +14,61 @@ client = TelegramClient("session", api_id, api_hash)
 
 last_update_id = None
 
-DELETE_DELAY = 10  # seconds before deletion
 
-
-async def send_combined_and_delete(chat_id, combined_text):
-    """Send the combined message and delete all messages in the chat after DELETE_DELAY"""
-    
-    send_url = f"https://tapi.bale.ai/bot{TOKEN}/sendMessage"
-    delete_url = f"https://tapi.bale.ai/bot{TOKEN}/deleteMessage"
-    
-    # send combined message
-    response = requests.post(send_url, json={"chat_id": chat_id, "text": combined_text}).json()
-    
-    if not response.get("ok"):
-        return  # if sending fails, silently return
-    
-    await asyncio.sleep(DELETE_DELAY)
-    
-    # get all messages in the chat (bot + user)
-    updates = requests.get(f"https://tapi.bale.ai/bot{TOKEN}/getUpdates").json()
-    
-    if not updates.get("ok"):
-        return
-    
-    message_ids = []
-    
-    for update in updates["result"]:
-        msg = update.get("message")
-        if msg and msg.get("chat", {}).get("id") == chat_id:
-            message_ids.append(msg.get("message_id"))
-    
-    # delete all messages at once
-    for msg_id in message_ids:
-        requests.post(delete_url, json={"chat_id": chat_id, "message_id": msg_id})
-
-
-async def get_last_30_messages(channel):
-    """Fetch last 30 Telegram messages and combine them into one string"""
+async def get_last_10_messages(channel):
     try:
-        messages = await client.get_messages(channel, limit=30)
-        if not messages:
-            return None
+        messages = await client.get_messages(channel, limit=10)
         combined_text = ""
         for i, msg in enumerate(reversed(messages), start=1):
             text = msg.text if msg.text else "Media post (no text)"
             combined_text += f"{i}) {text}\n\n-----------------\n\n"
         return combined_text
     except:
-        return None  # silently ignore errors
+        return None  # do nothing if channel not valid
+
+
+async def send_combined_and_delete(chat_id, combined_text, command_message_id):
+    if not combined_text:
+        return
+
+    # Send combined message
+    send_url = f"https://tapi.bale.ai/bot{TOKEN}/sendMessage"
+    data = {"chat_id": chat_id, "text": combined_text}
+    response = requests.post(send_url, json=data).json()
+
+    if response["ok"]:
+        message_id = response["result"]["message_id"]
+
+        await asyncio.sleep(10)
+
+        # Delete both user command and bot message
+        delete_url = f"https://tapi.bale.ai/bot{TOKEN}/deleteMessage"
+        for msg_id in [message_id, command_message_id]:
+            requests.post(delete_url, json={"chat_id": chat_id, "message_id": msg_id})
 
 
 async def check_bale_messages():
-    """Check Bale updates and handle new commands"""
     global last_update_id
     url = f"https://tapi.bale.ai/bot{TOKEN}/getUpdates"
     params = {}
     if last_update_id:
         params["offset"] = last_update_id + 1
-
     response = requests.get(url, params=params).json()
-    
-    if not response.get("ok"):
-        return
-    
-    for update in response["result"]:
-        last_update_id = update["update_id"]
-        msg = update.get("message")
-        if not msg:
-            continue
-        chat_id = msg.get("chat", {}).get("id")
-        text = msg.get("text", "").strip()
-        if not chat_id or not text:
-            continue
-        
-        # treat the message as a Telegram channel username
-        combined_posts = await get_last_30_messages(text)
-        if combined_posts:
-            await send_combined_and_delete(chat_id, combined_posts)
-        # silently ignore if invalid channel
+
+    if response["ok"]:
+        for update in response["result"]:
+            last_update_id = update["update_id"]
+            if "message" in update:
+                chat_id = update["message"]["chat"]["id"]
+                text = update["message"].get("text", "").strip()
+                command_message_id = update["message"]["message_id"]
+
+                if text:
+                    # text is considered the channel name
+                    combined_posts = await get_last_10_messages(text)
+                    if combined_posts:
+                        await send_combined_and_delete(chat_id, combined_posts, command_message_id)
+                    # do nothing if channel is invalid
 
 
 async def main():
@@ -99,8 +76,8 @@ async def main():
         try:
             await check_bale_messages()
         except:
-            pass  # silently ignore all errors
-        await asyncio.sleep(3)  # check every 3 seconds
+            pass  # ignore all errors silently
+        await asyncio.sleep(3)
 
 
 with client:
