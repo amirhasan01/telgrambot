@@ -14,7 +14,7 @@ client = TelegramClient("session", api_id, api_hash)
 
 last_update_id = None
 
-DELETE_DELAY = 10  # seconds before deletion
+DELETE_DELAY = 5  # seconds before deletion
 
 
 async def send_combined_and_delete(chat_id, combined_text):
